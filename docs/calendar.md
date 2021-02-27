@@ -124,7 +124,7 @@ Example usage:
 ```javascript
 cal = new Temporal.Calendar('iso8601');
 cal = new Temporal.Calendar('gregory');
-/*⚠️*/ cal = new Temporal.Calendar('discordian'); // not a built-in calendar, throws
+cal = new Temporal.Calendar('discordian'); // => throws, not a built-in calendar
 ```
 
 ## Static methods
@@ -168,8 +168,8 @@ cal2 = Temporal.Calendar.from(cal);
 // Custom calendar that is a plain object (this calendar does not do much)
 cal = Temporal.Calendar.from({ id: 'mycalendar' });
 
-/*⚠️*/ cal = Temporal.Calendar.from('discordian'); // not a built-in calendar, throws
-/*⚠️*/ cal = Temporal.Calendar.from('[u-ca-iso8601]'); // lone annotation not a valid ISO 8601 string
+cal = Temporal.Calendar.from('discordian'); // => throws, not a built-in calendar
+cal = Temporal.Calendar.from('[u-ca-iso8601]'); // => throws, lone annotation not a valid ISO 8601 string
 ```
 
 ## Properties
@@ -273,7 +273,7 @@ date.year; // => 5779
 date.month; // => 6
 date.monthCode; // => "M05L"
 date.day; // => 18
-date.toString(); // => 2019-02-23[u-ca-hebrew]
+date.toString(); // => '2019-02-23[u-ca-hebrew]'
 date.toLocaleString('en-US', { calendar: 'hebrew' }); // => "18 Adar I 5779"
 
 // same result, but calling the method directly and using month index instead of month code:
@@ -320,7 +320,7 @@ date = Temporal.PlainDate.from('2020-05-29')
 date.year; // => 1441
 date.month; // => 11
 date.day; // => 7
-date.toString(); // => 2020-06-28[u-ca-islamic]
+date.toString(); // => '2020-06-28[u-ca-islamic]'
 
 // same result, but calling the method directly:
 date = Temporal.Calendar.from('islamic').dateAdd(
@@ -332,7 +332,7 @@ date = Temporal.Calendar.from('islamic').dateAdd(
 date.year; // => 1441
 date.month; // => 11
 date.day; // => 7
-date.toString(); // => 2020-06-28[u-ca-islamic]
+date.toString(); // => '2020-06-28[u-ca-islamic]'
 ```
 
 ### calendar.**dateUntil**(_one_: Temporal.PlainDate | object | string, _two_: Temporal.PlainDate | object | string, _options_: object) : Temporal.Duration
@@ -366,14 +366,14 @@ For example:
 ```javascript
 d1 = Temporal.PlainDate.from('2020-07-29').withCalendar('chinese');
 d2 = Temporal.PlainDate.from('2020-08-29').withCalendar('chinese');
-d1.until(d2, { largestUnit: 'months' }); // => P1M2D
+d1.until(d2, { largestUnit: 'months' }); // => 'P1M2D'
 
 // same result, but calling the method directly:
 Temporal.Calendar.from('chinese').dateUntil(
   Temporal.PlainDate.from('2020-07-29'),
   Temporal.PlainDate.from('2020-08-29'),
   { largestUnit: 'months' }
-); // => P1M2D
+); // => 'P1M2D'
 ```
 
 ### calendar.**fields**(_fields_: array<string>) : array<string>
@@ -445,7 +445,7 @@ This method overrides `Object.prototype.toString()` and provides the calendar's 
 Example usage:
 
 ```javascript
-Temporal.PlainDate.from('2020-05-29[u-ca-gregory]').calendar.toString(); // => gregory
+Temporal.PlainDate.from('2020-05-29[u-ca-gregory]').calendar.toString(); // => 'gregory'
 ```
 
 ### calendar.**toJSON**() : string

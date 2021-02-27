@@ -41,9 +41,9 @@ Usage examples:
 
 ```javascript
 // Pi day
-md = new Temporal.PlainMonthDay(3, 14); // => 03-14
+md = new Temporal.PlainMonthDay(3, 14); // => '03-14'
 // Leap day
-md = new Temporal.PlainMonthDay(2, 29); // => 02-29
+md = new Temporal.PlainMonthDay(2, 29); // => '02-29'
 ```
 
 ## Static methods
@@ -89,41 +89,43 @@ The `overflow` option is ignored if `thing` is a string.
 Example usage:
 
 ```javascript
-md = Temporal.PlainMonthDay.from('08-24'); // => 08-24
-md = Temporal.PlainMonthDay.from('2006-08-24'); // => 08-24
-md = Temporal.PlainMonthDay.from('2006-08-24T15:43:27'); // => 08-24
-md = Temporal.PlainMonthDay.from('2006-08-24T15:43:27Z'); // => 08-24
+md = Temporal.PlainMonthDay.from('08-24'); // => '08-24'
+md = Temporal.PlainMonthDay.from('2006-08-24'); // => '08-24'
+md = Temporal.PlainMonthDay.from('2006-08-24T15:43:27'); // => '08-24'
+md = Temporal.PlainMonthDay.from('2006-08-24T15:43:27Z'); // => '08-24'
 md = Temporal.PlainMonthDay.from('2006-08-24T15:43:27+01:00[Europe/Brussels]');
-// => 08-24
-md === Temporal.PlainMonthDay.from(md); // => true
+// => '08-24'
+md.equals(Temporal.PlainMonthDay.from(md)); // => true
 
-md = Temporal.PlainMonthDay.from({ monthCode: 'M08', day: 24 }); // => 08-24
+md = Temporal.PlainMonthDay.from({ monthCode: 'M08', day: 24 }); // => '08-24'
 md = Temporal.PlainMonthDay.from(Temporal.PlainDate.from('2006-08-24'));
-// => same as above; Temporal.PlainDate has month and day properties
+// => '08-24'
+// (same as above; Temporal.PlainDate has month and day properties)
 
 // Different overflow modes
 md = Temporal.PlainMonthDay.from({ month: 13, day: 1, year: 2000 }, { overflow: 'constrain' });
-// => 12-01
-md = Temporal.PlainMonthDay.from({ month: -1, day: 1, year: 2000 }, { overflow: 'constrain' });
-// => 01-01
+// => '12-01'
+md = Temporal.PlainMonthDay.from({ month: 1, day: 32, year: 2000 }, { overflow: 'constrain' });
+// => '01-31'
 md = Temporal.PlainMonthDay.from({ month: 13, day: 1, year: 2000 }, { overflow: 'reject' });
-// throws
-md = Temporal.PlainMonthDay.from({ month: -1, day: 1, year: 2000 }, { overflow: 'reject' });
-// throws
+// => throws
+md = Temporal.PlainMonthDay.from({ month: 1, day: 32, year: 2000 }, { overflow: 'reject' });
+// => throws
 md = Temporal.PlainMonthDay.from({ month: 2, day: 29, year: 2001 }, { overflow: 'reject' });
-// throws (this year is not a leap year in the ISO calendar)
+// => throws (this year is not a leap year in the ISO calendar)
 
 // non-ISO calendars
 md = Temporal.PlainMonthDay.from({ monthCode: 'M05L', day: 15, calendar: 'hebrew' });
-// => 2019-02-20[u-ca-hebrew]
+// => '2019-02-20[u-ca-hebrew]'
 md = Temporal.PlainMonthDay.from({ month: 6, day: 15, year: 5779, calendar: 'hebrew' });
-// => 2019-02-20[u-ca-hebrew]
+// => '2019-02-20[u-ca-hebrew]'
 md = Temporal.PlainMonthDay.from({ month: 6, day: 15, calendar: 'hebrew' });
 // => throws (either year or monthCode is required)
 md = Temporal.PlainMonthDay.from('2019-02-20[u-ca-hebrew]');
 md.monthCode; // => "M05L"
 md.day; // => 15
-md.month; // undefined (month property is not present in this type; use monthCode instead)
+md.month; // undefined
+// (month property is not present in this type; use monthCode instead)
 ```
 
 ## Properties
@@ -202,8 +204,8 @@ Usage example:
 ```javascript
 md = Temporal.PlainMonthDay.from('11-15');
 // What's the last day of that month?
-md.with({ day: 31 }); // => 11-30
-Temporal.PlainMonthDay.from('02-01').with({ day: 31 }); // => 02-29
+md.with({ day: 31 }); // => '11-30'
+Temporal.PlainMonthDay.from('02-01').with({ day: 31 }); // => '02-29'
 ```
 
 ### monthDay.**equals**(_other_: Temporal.PlainMonthDay | object | string) : boolean
@@ -254,7 +256,7 @@ Example usage:
 
 ```js
 md = Temporal.PlainMonthDay.from('08-24');
-md.toString(); // => 08-24
+md.toString(); // => '08-24'
 ```
 
 ### monthDay.**toLocaleString**(_locales_?: string | array&lt;string&gt;, _options_?: object) : string
@@ -286,15 +288,16 @@ monthDay.toLocaleString();
 Example usage:
 
 ```js
+let calendar;
 ({ calendar } = new Intl.DateTimeFormat().resolvedOptions());
 md = Temporal.PlainMonthDay.from({ monthCode: 'M08', day: 24, calendar });
-md.toLocaleString(); // => example output: 08-24
+md.toLocaleString(); // => '8/24'
 // Same as above, but explicitly specifying the calendar:
-md.toLocaleString(undefined, { calendar });
+md.toLocaleString(undefined, { calendar }); // => '8/24'
 
-md.toLocaleString('de-DE', { calendar }); // => example output: 24.8.
-md.toLocaleString('de-DE', { month: 'long', day: 'numeric', calendar }); // => 24. August
-md.toLocaleString(`en-US-u-nu-fullwide-u-ca-${calendar}`); // => ８/２４
+md.toLocaleString('de-DE', { calendar }); // => '24.8.'
+md.toLocaleString('de-DE', { month: 'long', day: 'numeric', calendar }); // => '24. August'
+md.toLocaleString(`en-US-u-nu-fullwide-ca-${calendar}`); // => '８/２４'
 ```
 
 ### monthDay.**toJSON**() : string
@@ -352,11 +355,11 @@ Usage example:
 
 ```javascript
 md = Temporal.PlainMonthDay.from('08-24');
-md.toPlainDate({ year: 2017 }); // => 2017-08-24
+md.toPlainDate({ year: 2017 }); // => '2017-08-24'
 
 md = Temporal.PlainMonthDay.from('02-29');
-md.toPlainDate({ year: 2020 }); // => 2020-02-29
-md.toPlainDate({ year: 2017 }); // => 2017-02-28
+md.toPlainDate({ year: 2020 }); // => '2020-02-29'
+md.toPlainDate({ year: 2017 }); // => '2017-02-28'
 ```
 
 In calendars where more information than just the year is needed to convert a `Temporal.PlainMonthDay` to a `Temporal.PlainDate`, you can pass the necessary properties in the _year_ object.
@@ -370,7 +373,7 @@ md = Temporal.PlainMonthDay.from({
   day: 1
 });
 
-date = md.toPlainDate({ era: 'reiwa', eraYear: 2 });
+date = md.toPlainDate({ era: 'reiwa', eraYear: 2 }); // => '2020-01-01[u-ca-japanese]'
 ```
 
 ### monthDay.**getISOFields**(): { isoYear: number, isoMonth: number, isoDay: number, calendar: object }

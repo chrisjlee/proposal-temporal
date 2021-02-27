@@ -43,7 +43,7 @@ Usage examples:
 
 ```javascript
 // Pi day in 2020
-date = new Temporal.PlainDate(2020, 3, 14); // => 2020-03-14
+date = new Temporal.PlainDate(2020, 3, 14); // => '2020-03-14'
 ```
 
 ## Static methods
@@ -87,31 +87,33 @@ Additionally, if the result is earlier or later than the range of dates that `Te
 Example usage:
 
 ```javascript
-date = Temporal.PlainDate.from('2006-08-24'); // => 2006-08-24
-date = Temporal.PlainDate.from('2006-08-24T15:43:27'); // => 2006-08-24
-date = Temporal.PlainDate.from('2006-08-24T15:43:27Z'); // => 2006-08-24
+date = Temporal.PlainDate.from('2006-08-24'); // => '2006-08-24'
+date = Temporal.PlainDate.from('2006-08-24T15:43:27'); // => '2006-08-24'
+date = Temporal.PlainDate.from('2006-08-24T15:43:27Z'); // => '2006-08-24'
 date = Temporal.PlainDate.from('2006-08-24T15:43:27+01:00[Europe/Brussels]');
-  // => 2006-08-24
-date === Temporal.PlainDate.from(date) // => true
+  // => '2006-08-24'
+date.equals(Temporal.PlainDate.from(date)); // => true
 
-date = Temporal.PlainDate.from({year: 2006, month: 8, day: 24}); // => 2006-08-24
+date = Temporal.PlainDate.from({year: 2006, month: 8, day: 24}); // => '2006-08-24'
 date = Temporal.PlainDate.from(Temporal.PlainDateTime.from('2006-08-24T15:43:27'));
-  // => same as above; Temporal.PlainDateTime has year, month, and day properties
+  // => '2006-08-24'
+  // same as above; Temporal.PlainDateTime has year, month, and day properties
 
 calendar = Temporal.Calendar.from('islamic');
-date = Temporal.PlainDate.from({ year: 1427, month; 8, day: 1, calendar }); // => 2006-08-24[u-ca-islamic]
+date = Temporal.PlainDate.from({ year: 1427, month: 8, day: 1, calendar }); // => '2006-08-24[u-ca-islamic]'
 date = Temporal.PlainDate.from({ year: 1427, month: 8, day: 1, calendar: 'islamic' });
-  // => same as above
+  // => '2006-08-24[u-ca-islamic]'
+  // same as above
 
 // Different overflow modes
 date = Temporal.PlainDate.from({ year: 2001, month: 13, day: 1 }, { overflow: 'constrain' })
-  // => 2001-12-01
-date = Temporal.PlainDate.from({ year: 2001, month: -1, day: 1 }, { overflow: 'constrain' })
-  // => 2001-01-01
+  // => '2001-12-01'
+date = Temporal.PlainDate.from({ year: 2001, month: 1, day: 32 }, { overflow: 'constrain' })
+  // => '2001-01-31'
 date = Temporal.PlainDate.from({ year: 2001, month: 13, day: 1 }, { overflow: 'reject' })
-  // throws
-date = Temporal.PlainDate.from({ year: 2001, month: -1, day: 1 }, { overflow: 'reject' })
-  // throws
+  // => throws
+date = Temporal.PlainDate.from({ year: 2001, month: 1, day: 32 }, { overflow: 'reject' })
+  // => throws
 ```
 
 ### Temporal.PlainDate.**compare**(_one_: Temporal.PlainDate | object | string, _two_: Temporal.PlainDate | object | string) : number
@@ -143,7 +145,7 @@ one = Temporal.PlainDate.from('2006-08-24');
 two = Temporal.PlainDate.from('2015-07-14');
 three = Temporal.PlainDate.from('1930-02-18');
 sorted = [one, two, three].sort(Temporal.PlainDate.compare);
-sorted.join(' '); // => 1930-02-18 2006-08-24 2015-07-14
+sorted.join(' '); // => '1930-02-18 2006-08-24 2015-07-14'
 ```
 
 ## Properties
@@ -226,7 +228,7 @@ Usage example:
 
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
-['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][date.dayOfWeek - 1]; // => THU
+['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][date.dayOfWeek - 1]; // => 'THU'
 ```
 
 ### date.**dayOfYear** : number
@@ -239,7 +241,7 @@ Usage example:
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
 // ISO ordinal date
-console.log(date.year, date.dayOfYear); // => 2006 236
+console.log(date.year, date.dayOfYear); // => '2006 236'
 ```
 
 ### date.**weekOfYear** : number
@@ -254,7 +256,7 @@ Usage example:
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
 // ISO week date
-console.log(date.year, date.weekOfYear, date.dayOfWeek); // => 2006 34 4
+console.log(date.year, date.weekOfYear, date.dayOfWeek); // => '2006 34 4'
 ```
 
 ### date.**daysInWeek** : number
@@ -278,9 +280,10 @@ Usage example:
 
 ```javascript
 // Attempt to write some mnemonic poetry
+({ calendar } = Intl.DateTimeFormat().resolvedOptions());
 const monthsByDays = {};
 for (let month = 1; month <= 12; month++) {
-  const date = Temporal.now.plainDate().with({ month });
+  const date = Temporal.now.plainDate(calendar).with({ month });
   monthsByDays[date.daysInMonth] = (monthsByDays[date.daysInMonth] || []).concat(date);
 }
 
@@ -301,7 +304,8 @@ For the ISO 8601 calendar, this is 365 or 366, depending on whether the year is 
 Usage example:
 
 ```javascript
-date = Temporal.now.plainDate();
+({ calendar } = Intl.DateTimeFormat().resolvedOptions());
+date = Temporal.now.plainDate(calendar);
 percent = date.dayOfYear / date.daysInYear;
 `The year is ${percent.toLocaleString('en', { style: 'percent' })} over!`;
 // example output: "The year is 10% over!"
@@ -328,7 +332,8 @@ Usage example:
 
 ```javascript
 // Is this year a leap year?
-date = Temporal.now.plainDate();
+({ calendar } = Intl.DateTimeFormat().resolvedOptions());
+date = Temporal.now.plainDate(calendar);
 date.inLeapYear; // example output: true
 // Is 2100 a leap year? (no, because it's divisible by 100 and not 400)
 date.with({ year: 2100 }).inLeapYear; // => false
@@ -365,10 +370,10 @@ Usage example:
 ```javascript
 date = Temporal.PlainDate.from('2006-01-24');
 // What's the first day of this month?
-date.with({ day: 1 }); // => 2006-01-01
+date.with({ day: 1 }); // => '2006-01-01'
 // What's the last day of the next month?
 const nextMonthDate = date.add({ months: 1 });
-nextMonthDate.with({ day: nextMonthDate.daysInMonth }); // => 2006-02-28
+nextMonthDate.with({ day: nextMonthDate.daysInMonth }); // => '2006-02-28'
 ```
 
 ### date.**withCalendar**(_calendar_: object | string) : Temporal.PlainDate
@@ -385,7 +390,7 @@ Usage example:
 
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24[u-ca-japanese]');
-date.withCalendar('iso8601'); // => 2006-08-24
+date.withCalendar('iso8601'); // => '2006-08-24'
 ```
 
 ### date.**add**(_duration_: Temporal.Duration | object | string, _options_?: object) : Temporal.PlainDate
@@ -421,10 +426,10 @@ Usage example:
 
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
-date.add({ years: 20, months: 4 }); // => 2026-12-24
+date.add({ years: 20, months: 4 }); // => '2026-12-24'
 
 date = Temporal.PlainDate.from('2019-01-31');
-date.add({ months: 1 }); // => 2019-02-28
+date.add({ months: 1 }); // => '2019-02-28'
 date.add({ months: 1 }, { overflow: 'reject' }); // => throws
 ```
 
@@ -461,10 +466,10 @@ Usage example:
 
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
-date.subtract({ years: 20, months: 4 }); // => 1986-04-24
+date.subtract({ years: 20, months: 4 }); // => '1986-04-24'
 
 date = Temporal.PlainDate.from('2019-03-31');
-date.subtract({ months: 1 }); // => 2019-02-28
+date.subtract({ months: 1 }); // => '2019-02-28'
 date.subtract({ months: 1 }, { overflow: 'reject' }); // => throws
 ```
 
@@ -520,9 +525,9 @@ Usage example:
 ```javascript
 earlier = Temporal.PlainDate.from('2006-08-24');
 later = Temporal.PlainDate.from('2019-01-31');
-earlier.until(later);                           // => P4543D
-earlier.until(later, { largestUnit: 'years' }); // => P12Y5M7D
-later.until(earlier, { largestUnit: 'years' }); // => -P12Y5M7D
+earlier.until(later);                           // => 'P4543D'
+earlier.until(later, { largestUnit: 'years' }); // => 'P12Y5M7D'
+later.until(earlier, { largestUnit: 'years' }); // => '-P12Y5M7D'
 
 // If you really need to calculate the difference between two Dates in
 // hours, you can eliminate the ambiguity by explicitly choosing the
@@ -530,7 +535,7 @@ later.until(earlier, { largestUnit: 'years' }); // => -P12Y5M7D
 // example, using noon:
 noon = Temporal.PlainTime.from('12:00');
 earlier.toPlainDateTime(noon).until(later.toPlainDateTime(noon), { largestUnit: 'hours' });
-  // => PT109032H
+  // => 'PT109032H'
 ```
 <!-- prettier-ignore-end -->
 
@@ -567,7 +572,7 @@ Usage example:
 ```javascript
 earlier = Temporal.PlainDate.from('2006-08-24');
 later = Temporal.PlainDate.from('2019-01-31');
-later.since(earlier); // => P4543D
+later.since(earlier); // => 'P4543D'
 ```
 
 ### date.**equals**(_other_: Temporal.PlainDate | object | string) : boolean
@@ -620,7 +625,7 @@ Example usage:
 
 ```js
 date = Temporal.PlainDate.from('2006-08-24');
-date.toString(); // => 2006-08-24
+date.toString(); // => '2006-08-24'
 ```
 
 ### date.**toLocaleString**(_locales_?: string | array&lt;string&gt;, _options_?: object) : string
@@ -640,10 +645,10 @@ Example usage:
 
 ```js
 date = Temporal.PlainDate.from('2006-08-24');
-date.toLocaleString(); // => example output: 8/24/2006
-date.toLocaleString('de-DE'); // => example output: 24.8.2006
-date.toLocaleString('de-DE', { weekday: 'long' }); // => Donnerstag
-date.toLocaleString('en-US-u-nu-fullwide'); // => ８/２４/２００６
+date.toLocaleString(); // example output: 8/24/2006
+date.toLocaleString('de-DE'); // => '24.8.2006'
+date.toLocaleString('de-DE', { weekday: 'long' }); // => 'Donnerstag'
+date.toLocaleString('en-US-u-nu-fullwide'); // => '８/２４/２００６'
 ```
 
 ### date.**toJSON**() : string
@@ -727,9 +732,9 @@ Usage example:
 plainDate = Temporal.PlainDate.from('2006-08-24');
 plainTime = Temporal.PlainTime.from('15:23:30.003');
 plainDate.toZonedDateTime({ timeZone: 'America/Los_Angeles', plainTime });
-// => 2006-08-24T15:23:30.003-07:00[America/Los_Angeles]
+// => '2006-08-24T15:23:30.003-07:00[America/Los_Angeles]'
 plainDate.toZonedDateTime({ timeZone: 'America/Los_Angeles' });
-// => 2006-08-24T00:00-07:00[America/Los_Angeles]
+// => '2006-08-24T00:00:00-07:00[America/Los_Angeles]'
 ```
 
 ### date.**toPlainDateTime**(_time_?: Temporal.PlainTime | object | string) : Temporal.PlainDateTime
@@ -753,8 +758,8 @@ Usage example:
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
 time = Temporal.PlainTime.from('15:23:30.003');
-date.toPlainDateTime(time); // => 2006-08-24T15:23:30.003
-date.toPlainDateTime(); // => 2006-08-24T00:00
+date.toPlainDateTime(time); // => '2006-08-24T15:23:30.003'
+date.toPlainDateTime(); // => '2006-08-24T00:00:00'
 ```
 
 ### date.**toPlainYearMonth**() : Temporal.PlainYearMonth
@@ -772,8 +777,8 @@ Usage example:
 
 ```javascript
 date = Temporal.PlainDate.from('2006-08-24');
-date.toPlainYearMonth(); // => 2006-08
-date.toPlainMonthDay(); // => 08-24
+date.toPlainYearMonth(); // => '2006-08'
+date.toPlainMonthDay(); // => '08-24'
 ```
 
 ### date.**getISOFields**(): { isoYear: number, isoMonth: number, isoDay: number, calendar: object }

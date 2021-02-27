@@ -31,23 +31,29 @@ By default, `round()` will not enlarge a top-heavy unbalanced duration.
 By default, the largest unit in the input will be largest unit in the output.
 
 ```javascript
-d = Temporal.Duration.from({ minutes: 80, seconds: 30 }); // => PT80M30S
-d.round(); // => PT80M30S (unchanged)
+d = Temporal.Duration.from({ minutes: 80, seconds: 30 }); // => 'PT80M30S'
+d.round({largestUnit: 'auto'});
+  // => 'PT80M30S'
+  // (unchanged)
 ```
 
 However, `round()` will balance units smaller than the largest one.
 This only matters in the rare case that an unbalanced duration isn't top-heavy.
 
 ```javascript
-d = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => PT80M90S
-d.round(); // => PT81M30S (seconds balance to minutes, but not minutes=>hours)
+d = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => 'PT80M90S'
+d.round({largestUnit: 'auto'});
+  // => 'PT81M30S'
+  // (seconds balance to minutes, but not minutes=>hours)
 ```
 
 To fully balance a duration, use the `largestUnit` option:
 
 ```javascript
-d = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => PT80M90S
-d.round({ largestUnit: 'hours' }); // => PT1H21M30S (fully balanced)
+d = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => 'PT80M90S'
+d.round({ largestUnit: 'hours' });
+  // => 'PT1H21M30S'
+  // (fully balanced)
 ```
 
 ## Balancing Relative to a Reference Point
@@ -63,10 +69,12 @@ To handle this potential ambiguity, the `relativeTo` option is used to provide a
 `relativeTo` is required when balancing to or from weeks, months, or years.
 
 ```javascript
-d = Temporal.Duration.from({ days: 370 }); // => P370D
+d = Temporal.Duration.from({ days: 370 }); // => 'P370D'
 d.round({ largestUnit: 'months' }); // => RangeError (`relativeTo` is required)
-d.round({ largestUnit: 'months', relativeTo: '2019-01-01' }); // => P1Y5D
-d.round({ largestUnit: 'months', relativeTo: '2020-01-01' }); // => P1Y4D (2020 is a leap year)
+d.round({ largestUnit: 'months', relativeTo: '2019-01-01' }); // => 'P12M5D'
+d.round({ largestUnit: 'months', relativeTo: '2020-01-01' });
+  // => 'P12M4D'
+  // (2020 is a leap year)
 ```
 
 `relativeTo` is optional when balancing to or from `days`, and if `relativeTo` is omitted then days are assumed to be 24 hours long.
@@ -74,11 +82,12 @@ However, if the duration is timezone-specific, then it's recommended to use a `T
 
 <!-- prettier-ignore-start -->
 ```javascript
-d = Temporal.Duration.from({ hours: 48 }); // => PT48H
+d = Temporal.Duration.from({ hours: 48 }); // => 'PT48H'
 d.round({ largestUnit: 'days' });
-  // => P2D
+  // => 'P2D'
 d.round({ largestUnit: 'days', relativeTo: '2020-03-08T00:00-08:00[America/Los_Angeles]' });
-  // => P2D1H (because one clock hour was skipped by DST starting)
+  // => 'P2DT1H'
+  // (because one clock hour was skipped by DST starting)
 ```
 <!-- prettier-ignore-end -->
 
@@ -89,17 +98,19 @@ In addition to `round()` as described above, `add()` and `subtract()` also balan
 By default, `add()` and `subtract()` on `Temporal.Duration` instances will only balance up to the largest unit in either input duration.
 
 ```javascript
-d1 = Temporal.Duration.from({ hours: 26, minutes: 45 }); // => PT26H45M
-d2 = Temporal.Duration.from({ minutes: 30 }); // => PT30M
-d1.add(d2); // => PT27H15M
+d1 = Temporal.Duration.from({ hours: 26, minutes: 45 }); // => 'PT26H45M'
+d2 = Temporal.Duration.from({ minutes: 30 }); // => 'PT30M'
+d1.add(d2); // => 'PT27H15M'
 ```
 
 The `largestUnit` option can be used to balance to larger units than the inputs.
 
 ```javascript
-d1 = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => PT80M90S
-d2 = Temporal.Duration.from({ minutes: 100, seconds: 15 }); // => PT100M15S
-d1.add(d2, { largestUnit: 'hours' }); // => PT3H1M45S (fully balanced)
+d1 = Temporal.Duration.from({ minutes: 80, seconds: 90 }); // => 'PT80M90S'
+d2 = Temporal.Duration.from({ minutes: 100, seconds: 15 }); // => 'PT100M15S'
+d1.add(d2).round({ largestUnit: 'hours' });
+  // => 'PT3H1M45S'
+  // (fully balanced)
 ```
 
 The `relativeTo` option can be used to balance to, or from, weeks, months or years (or days for timezone-aware durations).
@@ -107,12 +118,13 @@ The `relativeTo` option can be used to balance to, or from, weeks, months or yea
 
 <!-- prettier-ignore-start -->
 ```javascript
-d1 = Temporal.Duration.from({ hours: 48 }); // => PT48H
-d2 = Temporal.Duration.from({ hours: 24 }); // => PT24H
-d1.add(d2, { largestUnit: 'days' });
-  // => P3D
-d1.add(d2, { largestUnit: 'days', relativeTo: '2020-03-08T00:00-08:00[America/Los_Angeles]' });
-  // => P3D1H (because one clock hour was skipped by DST starting)
+d1 = Temporal.Duration.from({ hours: 48 }); // => 'PT48H'
+d2 = Temporal.Duration.from({ hours: 24 }); // => 'PT24H'
+d1.add(d2).round({ largestUnit: 'days' });
+  // => 'P3D'
+d1.add(d2).round({ largestUnit: 'days', relativeTo: '2020-03-08T00:00-08:00[America/Los_Angeles]' });
+  // => 'P3DT1H'
+  // (because one clock hour was skipped by DST starting)
 ```
 <!-- prettier-ignore-end -->
 

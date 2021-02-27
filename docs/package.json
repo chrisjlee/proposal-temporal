@@ -26,5 +26,8 @@
     "marked": "^1.2.0",
     "mkdirp": "^1.0.4",
     "prismjs": "^1.21.0"
+  },
+  "dependencies": {
+    "acorn-loose": "^8.0.2"
   }
 }

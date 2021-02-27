@@ -47,8 +47,10 @@ Usage examples:
 ```javascript
 // UNIX epoch in California
 new Temporal.ZonedDateTime(0n, Temporal.TimeZone.from('America/Los_Angeles'), Temporal.Calendar.from('iso8601'));
-  // => 1969-12-31T16:00-08:00[America/Los_Angeles]
-new Temporal.ZonedDateTime(0n, 'America/Los_Angeles'); // same, but shorter
+  // => '1969-12-31T16:00:00-08:00[America/Los_Angeles]'
+new Temporal.ZonedDateTime(0n, 'America/Los_Angeles');
+  // => '1969-12-31T16:00:00-08:00[America/Los_Angeles]'
+  // same, but shorter
 ```
 <!-- prettier-ignore-end -->
 
@@ -101,7 +103,7 @@ The time zone ID is always required.
 To parse these string formats, use `Temporal.Instant`:
 
 ```javascript
-Temporal.Instant.from('2020-08-05T20:06:13+0900').toZonedDateTime('Asia/Tokyo', 'iso8601');
+Temporal.Instant.from('2020-08-05T20:06:13+0900').toZonedDateTime({ timeZone: 'Asia/Tokyo', calendar: 'iso8601' });
 ```
 
 Usually a named IANA time zone like `Europe/Paris` or `America/Los_Angeles` is used, but there are cases where adjusting for DST or other time zone offset changes is not desired.
@@ -111,9 +113,10 @@ For example, `Etc/GMT+8` would be used for cases where the UTC offset is always 
 If a non-whole-hour single-offset time zone is needed, the offset can be used as the time zone ID of an offset time zone.
 
 ```javascript
-Temporal.Instant.from('2020-08-05T20:06:13+05:45[+05:45]');
+Temporal.Instant.from('2020-08-05T20:06:13+05:45[+05:45]')
 // OR
-Temporal.Instant('2020-08-05T20:06:13+05:45').toZonedDateTime('+05:45', 'iso8601');
+new Temporal.Instant(1596637273000000000n).toZonedDateTime({ timeZone: '+05:45', calendar: 'iso8601' });
+// => '2020-08-05T20:06:13+05:45[+05:45]'
 ```
 
 Note that using `Temporal.ZonedDateTime` with a single-offset time zone will not adjust for Daylight Saving Time or other time zone changes.
@@ -180,15 +183,15 @@ Example usage:
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00[Africa/Cairo]');
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00[Africa/Cairo][u-ca-islamic]');
-zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30');  // RangeError; time zone ID required
-zdt = Temporal.ZonedDateTime.from('1995-12-07T01:24:30Z');  // RangeError; time zone ID required
-zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00');  // RangeError; time zone ID required
+zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30');  // => throws RangeError: time zone ID required
+zdt = Temporal.ZonedDateTime.from('1995-12-07T01:24:30Z');  // => throws RangeError: time zone ID required
+zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00');  // => throws RangeError: time zone ID required
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00[+02:00]');  // OK (offset time zone) but rarely used
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+03:00[Africa/Cairo]');
   // => RangeError: Offset is invalid for '1995-12-07T03:24:30' in 'Africa/Cairo'. Provided: +03:00, expected: +02:00.
 
 zdt = Temporal.ZonedDateTime.from({
-    timeZone: 'America/Los_Angeles'
+    timeZone: 'America/Los_Angeles',
     year: 1995,
     month: 12,
     day: 7,
@@ -198,16 +201,12 @@ zdt = Temporal.ZonedDateTime.from({
     millisecond: 0,
     microsecond: 3,
     nanosecond: 500
-});  // => 1995-12-07T03:24:30.000003500+08:00[America/Los_Angeles]
+});  // => '1995-12-07T03:24:30.0000035-08:00[America/Los_Angeles]'
 
 // Different overflow modes
 zdt = Temporal.ZonedDateTime.from({ timeZone: 'Europe/Paris', year: 2001, month: 13, day: 1 }, { overflow: 'constrain' })
-  // => 2001-12-01T00:00+01:00[Europe/Paris]
-zdt = Temporal.ZonedDateTime.from({ timeZone: 'Europe/Paris', year: 2001, month: -1, day: 1 }, { overflow: 'constrain' })
-  // => 2001-01-01T00:00+01:00[Europe/Paris]
+  // => '2001-12-01T00:00:00+01:00[Europe/Paris]'
 zdt = Temporal.ZonedDateTime.from({ timeZone: 'Europe/Paris', year: 2001, month: 13, day: 1 }, { overflow: 'reject' })
-  // => throws RangeError
-zdt = Temporal.ZonedDateTime.from({ timeZone: 'Europe/Paris', year: 2001, month: -1, day: 1 }, { overflow: 'reject' })
   // => throws RangeError
 ```
 <!-- prettier-ignore-end -->
@@ -245,12 +244,13 @@ arr = [
 ];
 sorted = arr.sort(Temporal.ZonedDateTime.compare);
 JSON.stringify(sorted, undefined, 2);
-// => "[
+// =>
+// '[
 //   "2020-02-01T12:30+01:00[Europe/Brussels]",
 //   "2020-02-01T12:30+00:00[Europe/London]",
 //   "2020-02-01T12:30-05:00[America/New_York]",
 //   "2020-02-01T12:30-05:00[America/Toronto]"
-// ]"
+// ]'
 ```
 
 Note that in unusual cases like the repeated clock hour after DST ends, values that are later in the real world can be earlier in clock time, or vice versa.
@@ -262,11 +262,14 @@ For example:
 one = Temporal.ZonedDateTime.from('2020-11-01T01:45-07:00[America/Los_Angeles]');
 two = Temporal.ZonedDateTime.from('2020-11-01T01:15-08:00[America/Los_Angeles]');
 Temporal.ZonedDateTime.compare(one, two);
-  // => -1, because `one` is earlier in the real world
+  // => -1
+  // (because `one` is earlier in the real world)
 Temporal.PlainDateTime.compare(one.toPlainDateTime(), two.toPlainDateTime());
-  // => 1, because `one` is later in clock time
+  // => 1
+  // (because `one` is later in clock time)
 Temporal.Instant.compare(one.toInstant(), two.toInstant());
-  // => -1, because `Temporal.Instant` and `Temporal.ZonedDateTime` both compare real-world exact times
+  // => -1
+  // (because `Temporal.Instant` and `Temporal.ZonedDateTime` both compare real-world exact times)
 ```
 <!-- prettier-ignore-end -->
 
@@ -381,11 +384,11 @@ epochMs = zdt.epochMilliseconds;
 zdt.toInstant().epochMilliseconds;
   // => 1580527800000
 legacyDate = new Date(epochMs);
-  // => Fri Jan 31 2020 19:30:00 GMT-0800 (Pacific Standard Time)
+  // => 'Fri Jan 31 2020 19:30:00 GMT-0800 (Pacific Standard Time)'
   // (if the system time zone is America/Los_Angeles)
 epochMicros = zdt.epochMicroseconds;
   // => 1580527800000000
-epochNanos = sdt.epochNanoseconds;
+epochNanos = zdt.epochNanoseconds;
   // => 1580527800000000000
 ```
 <!-- prettier-ignore-end -->
@@ -442,17 +445,21 @@ zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24-08:00[America/Los_Angeles]')
 `Time zone is: ${zdt.timeZone}`;
   // => "Time zone is: America/Los_Angeles"
 zdt.withTimeZone('Asia/Singapore').timeZone;
-  // => Asia/Singapore
+  // => 'Asia/Singapore'
 zdt.withTimeZone('Asia/Chongqing').timeZone;
-  // => Asia/Shanghai (time zone IDs are normalized, e.g. Asia/Chongqing -> Asia/Shanghai)
+  // => 'Asia/Shanghai'
+  // (time zone IDs are normalized, e.g. Asia/Chongqing -> Asia/Shanghai)
 zdt.withTimeZone('+05:00').timeZone;
-  // => +05:00
+  // => '+05:00'
 zdt.withTimeZone('+05').timeZone;
-  // => +05:00 (normalized to canonical form)
+  // => '+05:00'
+  // (normalized to canonical form)
 zdt.withTimeZone('utc').timeZone;
-  // => UTC (normalized to canonical form which is uppercase)
+  // => 'UTC'
+  // (normalized to canonical form which is uppercase)
 zdt.withTimeZone('GMT').timeZone;
-  // => UTC (normalized to canonical form)
+  // => 'UTC'
+  // (normalized to canonical form)
 ```
 <!-- prettier-ignore-end -->
 
@@ -485,7 +492,7 @@ Usage example:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24-08:00[America/Los_Angeles]');
-['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][zdt.dayOfWeek - 1]; // => THU
+['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][zdt.dayOfWeek - 1]; // => 'THU'
 ```
 
 ### zonedDateTime.**dayOfYear** : number
@@ -498,7 +505,7 @@ Usage example:
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24-08:00[America/Los_Angeles]');
 // ISO ordinal date
-console.log(zdt.year, zdt.dayOfYear); // => 1995 341
+console.log(zdt.year, zdt.dayOfYear); // => '1995 341'
 ```
 
 ### zonedDateTime.**weekOfYear** : number
@@ -513,7 +520,7 @@ Usage example:
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24-08:00[America/Los_Angeles]');
 // ISO week date
-console.log(zdt.year, zdt.weekOfYear, zdt.dayOfWeek); // => 1995 49 4
+console.log(zdt.year, zdt.weekOfYear, zdt.dayOfWeek); // => '1995 49 4'
 ```
 
 ### zonedDateTime.**daysInWeek** : number
@@ -537,9 +544,10 @@ Usage example:
 
 ```javascript
 // Attempt to write some mnemonic poetry
+({ calendar } = Intl.DateTimeFormat().resolvedOptions());
 const monthsByDays = {};
 for (let month = 1; month <= 12; month++) {
-  const zdt = Temporal.now.zonedDateTime().with({ month });
+  const zdt = Temporal.now.zonedDateTime(calendar).with({ month });
   monthsByDays[zdt.daysInMonth] = (monthsByDays[zdt.daysInMonth] || []).concat(zdt);
 }
 
@@ -560,7 +568,8 @@ For the ISO 8601 calendar, this is 365 or 366, depending on whether the year is 
 Usage example:
 
 ```javascript
-zdt = Temporal.now.zonedDateTime();
+({ calendar } = Intl.DateTimeFormat().resolvedOptions());
+zdt = Temporal.now.zonedDateTime(calendar);
 percent = zdt.dayOfYear / zdt.daysInYear;
 `The year is ${percent.toLocaleString('en', { style: 'percent' })} over!`;
 // example output: "The year is 10% over!"
@@ -590,7 +599,7 @@ Usage example:
 
 ```javascript
 // Is this year a leap year?
-zdt = Temporal.now.zonedDateTime();
+zdt = Temporal.now.zonedDateTime('iso8601');
 zdt.inLeapYear; // example output: true
 // Is 2100 a leap year? (no, because it's divisible by 100 and not 400)
 zdt.with({ year: 2100 }).inLeapYear; // => false
@@ -611,11 +620,14 @@ Usage example:
 <!-- prettier-ignore-start -->
 ```javascript
 Temporal.ZonedDateTime.from('2020-01-01T12:00-08:00[America/Los_Angeles]').hoursInDay;
-  // => 24 (normal day)
+  // => 24
+  // (normal day)
 Temporal.ZonedDateTime.from('2020-03-08T12:00-07:00[America/Los_Angeles]').hoursInDay;
-  // => 23 (DST starts on this day)
+  // => 23
+  // (DST starts on this day)
 Temporal.ZonedDateTime.from('2020-11-01T12:00-08:00[America/Los_Angeles]').hoursInDay;
-  // => 25 (DST ends on this day)
+  // => 25
+  // (DST ends on this day)
 ```
 <!-- prettier-ignore-end -->
 
@@ -627,7 +639,7 @@ The local time of the result is almost always `00:00`, but in rare cases it coul
 
 ```javascript
 const zdt = Temporal.ZonedDateTime.from('2015-10-18T12:00-02:00[America/Sao_Paulo]');
-zdt.startOfDay(); // => 2015-10-18T01:00:00-02:00[America/Sao_Paulo]
+zdt.startOfDay(); // => '2015-10-18T01:00:00-02:00[America/Sao_Paulo]'
 ```
 
 Also note that some calendar systems (e.g. `ethiopic`) may not start days at `00:00`.
@@ -636,10 +648,10 @@ Usage example:
 
 <!-- prettier-ignore-start -->
 ```javascript
-zdt = Temporal.ZonedDateTime.from('2020-01-01T12:00-08:00[America/Los_Angeles]').startOfDay;
-  // => 2020-01-01T00:00-08:00[America/Los_Angeles]
-zdt = Temporal.ZonedDateTime.from('2018-11-04T12:00-02:00[America/Sao_Paulo]').startOfDay;
-  // => 2018-11-04T01:00-02:00[America/Sao_Paulo]
+zdt = Temporal.ZonedDateTime.from('2020-01-01T12:00-08:00[America/Los_Angeles]').startOfDay();
+  // => '2020-01-01T00:00:00-08:00[America/Los_Angeles]'
+zdt = Temporal.ZonedDateTime.from('2018-11-04T12:00-02:00[America/Sao_Paulo]').startOfDay();
+  // => '2018-11-04T01:00:00-02:00[America/Sao_Paulo]'
   // Note the 1:00AM start time because the first clock hour was skipped due to DST transition
   // that started at midnight.
 ```
@@ -658,7 +670,8 @@ The numeric `offsetNanoseconds` field is read-only and is ignored in `with` and 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('2020-11-01T01:30-07:00[America/Los_Angeles]');
 zdt.offsetNanoseconds;
-  // => -25200000000000 (-7 * 3600 * 1e9)
+  // => -25200000000000
+  // (-7 * 3600 * 1e9)
 ```
 <!-- prettier-ignore-end -->
 
@@ -684,10 +697,10 @@ zdt.withTimeZone('Asia/Kolkata').offset;
 
 minus8Hours = '-08:00';
 daylightTime0130 = Temporal.ZonedDateTime.from('2020-11-01T01:30-07:00[America/Los_Angeles]');
-  // => 2020-11-01T01:30-07:00[America/Los_Angeles]
+  // => '2020-11-01T01:30:00-07:00[America/Los_Angeles]'
   // This is Pacific Daylight Time 1:30AM
 repeated0130 = daylightTime0130.with({ offset: minus8Hours });
-  // => 2020-11-01T01:30-08:00[America/Los_Angeles]
+  // => '2020-11-01T01:30:00-08:00[America/Los_Angeles]'
   // This is Pacific Standard Time 1:30AM
 ```
 <!-- prettier-ignore-end -->
@@ -750,8 +763,8 @@ Please see the documentation of `from` for more details on options behavior.
 Usage example:
 
 ```javascript
-zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24-06:00[America/Chicago]');
-zdt.with({ year: 2015, minute: 31 }); // => 2015-12-07T03:31-06:00[America/Chicago]
+zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:00-06:00[America/Chicago]');
+zdt.with({ year: 2015, minute: 31 }); // => '2015-12-07T03:31:00-06:00[America/Chicago]'
 ```
 
 ### zonedDateTime.**withPlainTime**(_plainTime_?: object | string) : Temporal.PlainDateTime
@@ -777,13 +790,13 @@ Usage example:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('2015-12-07T03:24:30.000003500-08:00[America/Los_Angeles]');
-zdt.withPlainTime({ hour: 10 }); // => 2015-12-07T10:00:00-08:00[America/Los_Angeles]
+zdt.withPlainTime({ hour: 10 }); // => '2015-12-07T10:00:00-08:00[America/Los_Angeles]'
 time = Temporal.PlainTime.from('11:22');
-zdt.withPlainTime(time); // => 2015-12-07T11:22:00-08:00[America/Los_Angeles]
-zdt.withPlainTime('12:34'); // => 2015-12-07T12:34:00-08:00[America/Los_Angeles]
+zdt.withPlainTime(time); // => '2015-12-07T11:22:00-08:00[America/Los_Angeles]'
+zdt.withPlainTime('12:34'); // => '2015-12-07T12:34:00-08:00[America/Los_Angeles]'
 
 // easier for chaining
-zdt.add({ days: 2, hours: 22 }).withPlainTime('00:00'); // => 2015-12-10T00:00:00-08:00[America/Los_Angeles]
+zdt.add({ days: 2, hours: 22 }).withPlainTime('00:00'); // => '2015-12-10T00:00:00-08:00[America/Los_Angeles]'
 ```
 
 ### zonedDateTime.**withPlainDate**(_plainDate_: object | string) : Temporal.ZonedDateTime
@@ -816,17 +829,17 @@ Usage example:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30-08:00[America/Los_Angeles]');
-zdt.withPlainDate({ year: 2000, month: 6, day: 1 }); // => 2000-06-01T03:24:30-07:00[America/Los_Angeles]
+zdt.withPlainDate({ year: 2000, month: 6, day: 1 }); // => '2000-06-01T03:24:30-07:00[America/Los_Angeles]'
 date = Temporal.PlainDate.from('2020-01-23');
-zdt.withPlainDate(date); // => 2020-01-23T03:24:30-08:00[America/Los_Angeles]
-zdt.withPlainDate('2018-09-15'); // => 2018-09-15T03:24:30-07:00[America/Los_Angeles]
+zdt.withPlainDate(date); // => '2020-01-23T03:24:30-08:00[America/Los_Angeles]'
+zdt.withPlainDate('2018-09-15'); // => '2018-09-15T03:24:30-07:00[America/Los_Angeles]'
 
 // easier for chaining
-zdt.add({ hours: 12 }).withPlainDate('2000-06-01'); // => 2000-06-01T15:24:30-07:00[America/Los_Angeles]
+zdt.add({ hours: 12 }).withPlainDate('2000-06-01'); // => '2000-06-01T15:24:30-07:00[America/Los_Angeles]'
 
 // result contains a non-ISO calendar if present in the input
-zdt.withCalendar('japanese').withPlainDate('2008-09-06'); // => 2008-09-06T03:24:30-07:00[America/Los_Angeles][u-ca-japanese]
-zdt.withPlainDate('2017-09-06[u-ca-japanese]'); // => 2017-09-06T03:24:30-07:00[America/Los_Angeles][u-ca-japanese]
+zdt.withCalendar('japanese').withPlainDate('2008-09-06'); // => '2008-09-06T03:24:30-07:00[America/Los_Angeles][u-ca-japanese]'
+zdt.withPlainDate('2017-09-06[u-ca-japanese]'); // => '2017-09-06T03:24:30-07:00[America/Los_Angeles][u-ca-japanese]'
 zdt.withCalendar('japanese').withPlainDate('2017-09-06[u-ca-hebrew]'); // => RangeError (calendar conflict)
 ```
 
@@ -858,7 +871,7 @@ Usage example:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+09:00[Asia/Tokyo][u-ca-japanese]');
-`${zdt.era} ${zdt.year}`; // => "heisei 7"
+`${zdt.era} ${zdt.eraYear}`; // => "heisei 7"
 zdt.withCalendar('iso8601').year; // => 1995
 ```
 
@@ -913,13 +926,14 @@ Usage example:
 zdt = Temporal.ZonedDateTime.from('2020-03-08T00:00-08:00[America/Los_Angeles]');
 // Add a day to get midnight on the day after DST starts
 laterDay = zdt.add({ days: 1 });
-  // => 2020-03-09T00:00:00-07:00[America/Los_Angeles];
+  // => '2020-03-09T00:00:00-07:00[America/Los_Angeles]'
   // Note that the new offset is different, indicating the result is adjusted for DST.
 laterDay.since(zdt, { largestUnit: 'hours' }).hours;
-  // => 23, because one clock hour lost to DST
+  // => 23
+  // because one clock hour lost to DST
 
 laterHours = zdt.add({ hours: 24 });
-  // => 2020-03-09T01:00:00-07:00[America/Los_Angeles]
+  // => '2020-03-09T01:00:00-07:00[America/Los_Angeles]'
   // Adding time units doesn't adjust for DST. Result is 1:00AM: 24 real-world
   // hours later because a clock hour was skipped by DST.
 laterHours.since(zdt, { largestUnit: 'hours' }).hours; // => 24
@@ -977,13 +991,14 @@ Usage example:
 zdt = Temporal.ZonedDateTime.from('2020-03-09T00:00-07:00[America/Los_Angeles]');
 // Add a day to get midnight on the day after DST starts
 earlierDay = zdt.subtract({ days: 1 });
-  // => 2020-03-08T00:00:00-08:00[America/Los_Angeles]
+  // => '2020-03-08T00:00:00-08:00[America/Los_Angeles]'
   // Note that the new offset is different, indicating the result is adjusted for DST.
 earlierDay.since(zdt, { largestUnit: 'hours' }).hours;
-  // => -23, because one clock hour lost to DST
+  // => -23
+  // because one clock hour lost to DST
 
 earlierHours = zdt.subtract({ hours: 24 });
-  // => 2020-03-07T23:00:00-08:00[America/Los_Angeles]
+  // => '2020-03-07T23:00:00-08:00[America/Los_Angeles]'
   // Subtracting time units doesn't adjust for DST. Result is 11:00PM: 24 real-world
   // hours earlier because a clock hour was skipped by DST.
 earlierHours.since(zdt, { largestUnit: 'hours' }).hours; // => -24
@@ -1061,27 +1076,28 @@ Usage example:
 zdt1 = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+05:30[Asia/Kolkata]');
 zdt2 = Temporal.ZonedDateTime.from('2019-01-31T15:30+05:30[Asia/Kolkata]');
 zdt1.until(zdt2);
-  // =>      PT202956H5M29.999996500S
+  // => 'PT202956H5M29.9999965S'
 zdt1.until(zdt2, { largestUnit: 'years' });
-  // =>  P23Y1M24DT12H5M29.999996500S
+  // => 'P23Y1M24DT12H5M29.9999965S'
 zdt2.until(zdt1, { largestUnit: 'years' });
-  // => -P23Y1M24DT12H5M29.999996500S
+  // => '-P23Y1M24DT12H5M29.9999965S'
 zdt1.until(zdt2, { largestUnit: 'nanoseconds' });
-  // =>       PT730641929.999996544S (precision lost)
+  // => 'PT730641929.999996544S'
+  // (precision lost)'
 
 // Rounding, for example if you don't care about sub-seconds
 zdt1.until(zdt2, { smallestUnit: 'seconds' });
-  // => PT202956H5M29S
+  // => 'PT202956H5M29S'
 
 // Months and years can be different lengths
 [jan1, feb1, mar1] = [1, 2, 3].map((month) =>
   Temporal.ZonedDateTime.from({ year: 2020, month, day: 1, timeZone: 'Asia/Seoul' })
 );
-jan1.until(feb1, { largestUnit: 'days' }); // => P31D
-jan1.until(feb1, { largestUnit: 'months' }); // => P1M
-feb1.until(mar1, { largestUnit: 'days' }); // => P29D
-feb1.until(mar1, { largestUnit: 'months' }); // => P1M
-jan1.until(mar1, { largestUnit: 'days' }); // => P60D
+jan1.until(feb1, { largestUnit: 'days' }); // => 'P31D'
+jan1.until(feb1, { largestUnit: 'months' }); // => 'P1M'
+feb1.until(mar1, { largestUnit: 'days' }); // => 'P29D'
+feb1.until(mar1, { largestUnit: 'months' }); // => 'P1M'
+jan1.until(mar1, { largestUnit: 'days' }); // => 'P60D'
 ```
 <!-- prettier-ignore-end -->
 
@@ -1117,7 +1133,7 @@ Usage example:
 ```javascript
 zdt1 = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+05:30[Asia/Kolkata]');
 zdt2 = Temporal.ZonedDateTime.from('2019-01-31T15:30+05:30[Asia/Kolkata]');
-zdt2.since(zdt1); // => PT202956H5M29.999996500S
+zdt2.since(zdt1); // => 'PT202956H5M29.9999965S'
 ```
 
 ### zonedDateTime.**round**(_options_: object) : Temporal.ZonedDateTime
@@ -1167,13 +1183,13 @@ zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500-08:00[America/L
 
 // Round to a particular unit
 zdt.round({ smallestUnit: 'hour' });
-  // => 1995-12-07T03:00:00-08:00[America/Los_Angeles]
+  // => '1995-12-07T03:00:00-08:00[America/Los_Angeles]'
 // Round to an increment of a unit, e.g. half an hour:
 zdt.round({ roundingIncrement: 30, smallestUnit: 'minute' });
-  // => 1995-12-07T03:30:00-08:00[America/Los_Angeles]
+  // => '1995-12-07T03:30:00-08:00[America/Los_Angeles]'
 // Round to the same increment but round down instead:
 zdt.round({ roundingIncrement: 30, smallestUnit: 'minute', roundingMode: 'floor' });
-  // => 1995-12-07T03:00:00-08:00[America/Los_Angeles]
+  // => '1995-12-07T03:00:00-08:00[America/Los_Angeles]'
 ```
 <!-- prettier-ignore-end -->
 
@@ -1204,7 +1220,7 @@ zdt.withCalendar('iso8601').equals(other.withCalendar('iso8601'));
 To ignore both time zones and calendars, compare the instants of both:
 
 ```javascript
-zdt.toInstant().equals(other.toInstant()));
+zdt.toInstant().equals(other.toInstant());
 ```
 
 Example usage:
@@ -1212,7 +1228,8 @@ Example usage:
 ```javascript
 zdt1 = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+01:00[Europe/Paris]');
 zdt2 = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+01:00[Europe/Brussels]');
-zdt1.equals(zdt2); // => false (same offset but different time zones)
+zdt1.equals(zdt2); // => false
+ // (same offset but different time zones)
 zdt1.equals(zdt1); // => true
 ```
 
@@ -1271,9 +1288,9 @@ Example usage:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from({ year: 2019, month: 12, day: 1, hour: 12, timeZone: 'Africa/Lagos' });
-zdt.toString(); // => 2019-12-01T12:00+01:00[Africa/Lagos]
-zdt.withCalendar('japanese');
-zdt.toString(); // => 2019-12-01T12:00+01:00[Africa/Lagos][u-ca-japanese]
+zdt.toString(); // => '2019-12-01T12:00:00+01:00[Africa/Lagos]'
+zdt = zdt.withCalendar('japanese');
+zdt.toString(); // => '2019-12-01T12:00:00+01:00[Africa/Lagos][u-ca-japanese]'
 ```
 
 ### zonedDateTime.**toLocaleString**(_locales_?: string | array&lt;string&gt;, _options_?: object) : string
@@ -1298,14 +1315,14 @@ Example usage:
 <!-- prettier-ignore-start -->
 ```javascript
 zdt = Temporal.ZonedDateTime.from('2019-12-01T12:00+01:00[Europe/Berlin]');
-zdt.toLocaleString(); // => example output: 12/1/2019, 12:00:00 PM
-zdt.toLocaleString('de-DE'); // => 1.12.2019, 12:00:00
+zdt.toLocaleString(); // example output: 12/1/2019, 12:00:00 PM
+zdt.toLocaleString('de-DE'); // => '1.12.2019, 12:00:00 MEZ'
 options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-zdt.toLocaleString('de-DE', options); // => Sonntag, 1. Dezember 2019
+zdt.toLocaleString('de-DE', options); // => 'Sonntag, 1. Dezember 2019'
 zdt.toLocaleString('de-DE', { timeZone: 'Pacific/Auckland' });
   // => RangeError: Time zone option Pacific/Auckland does not match actual time zone Europe/Berlin
-zdt.withTimeZone('Pacific/Auckland').toLocaleString('de-DE'); // => 2.12.2019, 00:00:00
-zdt.toLocaleString('en-US-u-nu-fullwide-hc-h12'); // => １２/１/２０１９, １２:００:００ PM
+zdt.withTimeZone('Pacific/Auckland').toLocaleString('de-DE'); // => '2.12.2019, 0:00:00 GMT+13'
+zdt.toLocaleString('en-US-u-nu-fullwide-hc-h12'); // => '１２/１/２０１９, １２:００:００ PM GMT+１'
 ```
 <!-- prettier-ignore-end -->
 
@@ -1389,12 +1406,12 @@ Usage example:
 
 ```javascript
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30+02:00[Africa/Johannesburg]');
-zdt.toInstant(); // => 1995-12-07T01:24:30Z
-zdt.toPlainDateTime(); // => 1995-12-07T03:24:30
-zdt.toPlainDate(); // => 1995-12-07
-zdt.toPlainYearMonth(); // => 1995-12
-zdt.toPlainMonthDay(); // => 12-07
-zdt.toPlainTime(); // => 03:24:30
+zdt.toInstant(); // => '1995-12-07T01:24:30Z'
+zdt.toPlainDateTime(); // => '1995-12-07T03:24:30'
+zdt.toPlainDate(); // => '1995-12-07'
+zdt.toPlainYearMonth(); // => '1995-12'
+zdt.toPlainMonthDay(); // => '12-07'
+zdt.toPlainTime(); // => '03:24:30'
 ```
 
 ### zonedDateTime.**getISOFields**(): { isoYear: number, isoMonth: number, isoDay: number, hour: number, minute: number, second: number, millisecond: number, microsecond: number, nanosecond: number, offset: string, timeZone: object, calendar: object }
@@ -1411,7 +1428,7 @@ Usage example:
 zdt = Temporal.ZonedDateTime.from('1995-12-07T03:24:30.000003500+01:00[Europe/Paris]').withCalendar('japanese');
 
 // Year in japanese calendar is year 7 of Heisei era
-zdt.year; // => 7
+zdt.eraYear; // => 7
 zdt.getISOFields().isoYear; // => 1995
 
 // Instead of calling getISOFields, the pattern below is recommended for most use cases

@@ -63,10 +63,10 @@ Otherwise `Temporal.Duration.from()` is probably more convenient because it acce
 Usage examples:
 
 ```javascript
-new Temporal.Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321); // => P1Y2M3W4DT5H6M7.987654321S
-new Temporal.Duration(0, 0, 0, 40); // => P40D
-new Temporal.Duration(undefined, undefined, undefined, 40); // => P40D
-new Temporal.Duration(); // => PT0S
+new Temporal.Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321); // => 'P1Y2M3W4DT5H6M7.987654321S'
+new Temporal.Duration(0, 0, 0, 40); // => 'P40D'
+new Temporal.Duration(undefined, undefined, undefined, 40); // => 'P40D'
+new Temporal.Duration(); // => 'PT0S'
 ```
 
 ## Static methods
@@ -96,17 +96,17 @@ Any non-object value is converted to a string, which is expected to be in ISO 86
 Usage examples:
 
 ```javascript
-d = Temporal.Duration.from({ years: 1, days: 1 }); // => P1Y1D
-d = Temporal.Duration.from({ days: -2, hours: -12 }); // => -P2DT12H
+d = Temporal.Duration.from({ years: 1, days: 1 }); // => 'P1Y1D'
+d = Temporal.Duration.from({ days: -2, hours: -12 }); // => '-P2DT12H'
 
-Temporal.Duration.from(d) === d; // => true
+Temporal.Duration.from(d) === d; // => false
 
-d = Temporal.Duration.from('P1Y1D'); // => P1Y1D
-d = Temporal.Duration.from('-P2DT12H'); // => -P2DT12H
-d = Temporal.Duration.from('P0D'); // => PT0S
+d = Temporal.Duration.from('P1Y1D'); // => 'P1Y1D'
+d = Temporal.Duration.from('-P2DT12H'); // => '-P2DT12H'
+d = Temporal.Duration.from('P0D'); // => 'PT0S'
 
 // Mixed-sign values are never allowed, even if overall positive:
-d = Temporal.Duration.from({ hours: 1, minutes: -30 }); // throws
+d = Temporal.Duration.from({ hours: 1, minutes: -30 }); // => throws
 ```
 
 ### Temporal.Duration.**compare**(_one_: Temporal.Duration | object | string, _two_: Temporal.Duration | object | string, _options_?: object) : number
@@ -148,13 +148,13 @@ two = Temporal.Duration.from({ days: 3, hours: 7, seconds: 630 });
 three = Temporal.Duration.from({ days: 3, hours: 6, minutes: 50 });
 sorted = [one, two, three].sort(Temporal.Duration.compare);
 sorted.join(' ');
-// => P3DT6H50M PT79H10M P3DT7H630S
+// => 'P3DT6H50M PT79H10M P3DT7H630S'
 
 // Sorting relative to a date, taking DST changes into account:
 relativeTo = Temporal.ZonedDateTime.from('2020-11-01T00:00-07:00[America/Los_Angeles]');
 sorted = [one, two, three].sort((one, two) => Temporal.Duration.compare(one, two, {relativeTo}));
 sorted.join(' ');
-// => PT79H10M P3DT6H50M P3DT7H630S
+// => 'PT79H10M P3DT6H50M P3DT7H630S'
 ```
 
 ## Properties
@@ -245,7 +245,7 @@ let { years, months } = duration;
 years += Math.floor(months / 12);
 months %= 12;
 duration = duration.with({ years, months });
-  // => P4Y2M50DT50H100M
+  // => 'P4Y2M50DT50H100M'
 ```
 <!-- prettier-ignore-end -->
 
@@ -284,24 +284,22 @@ Usage example:
 
 ```javascript
 hour = Temporal.Duration.from('PT1H');
-hour.add({ minutes: 30 }); // => PT1H30M
+hour.add({ minutes: 30 }); // => 'PT1H30M'
 
 // Examples of balancing:
 one = Temporal.Duration.from({ hours: 1, minutes: 30 });
 two = Temporal.Duration.from({ hours: 2, minutes: 45 });
-result = one.add(two); // => PT3H75M
-result.with(result, { overflow: 'balance' }); // => PT4H15M
+result = one.add(two); // => 'PT4H15M'
 
 fifty = Temporal.Duration.from('P50Y50M50DT50H50M50.500500500S');
-result = fifty.add(fifty); // => P100Y100M100DT100H100M101.001001S'
-Temporal.Duration.from(result, { overflow: 'balance' });
-// => P100Y100M104DT5H41M41.001001S
+result = fifty.add(fifty); // => throws, need relativeTo
+result = fifty.add(fifty, {relativeTo: '1900-01-01'}); // => 'P108Y7M12DT5H41M41.001001S'
 
 // Example of converting ambiguous units relative to a start date
 oneAndAHalfMonth = Temporal.Duration.from({ months: 1, days: 15 });
-oneAndAHalfMonth.add(oneAndAHalfMonth); // throws
-oneAndAHalfMonth.add(oneAndAHalfMonth, { relativeTo: '2000-02-01' }); // => P3M
-oneAndAHalfMonth.add(oneAndAHalfMonth, { relativeTo: '2000-03-01' }); // => P2M30D
+oneAndAHalfMonth.add(oneAndAHalfMonth); // => throws
+oneAndAHalfMonth.add(oneAndAHalfMonth, { relativeTo: '2000-02-01' }); // => 'P3M'
+oneAndAHalfMonth.add(oneAndAHalfMonth, { relativeTo: '2000-03-01' }); // => 'P2M30D'
 ```
 
 <!-- prettier-ignore-start -->
@@ -341,19 +339,19 @@ Usage example:
 
 ```javascript
 hourAndAHalf = Temporal.Duration.from('PT1H30M');
-hourAndAHalf.subtract({ hours: 1 }); // => PT30M
+hourAndAHalf.subtract({ hours: 1 }); // => 'PT30M'
 
 one = Temporal.Duration.from({ minutes: 180 });
 two = Temporal.Duration.from({ seconds: 30 });
-one.subtract(two); // => PT179M30S
-one.subtract(two, { overflow: 'balance' }); // => PT2H59M30S
+one.subtract(two); // => 'PT179M30S'
+one.subtract(two).round({largestUnit: 'hours'}); // => 'PT2H59M30S'
 
 // Example of converting ambiguous units relative to a start date
 threeMonths = Temporal.Duration.from({ months: 3 });
 oneAndAHalfMonth = Temporal.Duration.from({ months: 1, days: 15 });
-threeMonths.subtract(oneAndAHalfMonth); // throws
-threeMonths.subtract(oneAndAHalfMonth, { relativeTo: '2000-02-01' }); // => P1M16D
-threeMonths.subtract(oneAndAHalfMonth, { relativeTo: '2000-03-01' }); // => P1M15D
+threeMonths.subtract(oneAndAHalfMonth); // => throws
+threeMonths.subtract(oneAndAHalfMonth, { relativeTo: '2000-02-01' }); // => 'P1M16D'
+threeMonths.subtract(oneAndAHalfMonth, { relativeTo: '2000-03-01' }); // => 'P1M15D'
 ```
 
 ### duration.**negated**() : Temporal.Duration
@@ -463,12 +461,12 @@ Example usage:
 ```javascript
 // Balance a duration as far as possible without knowing a starting point
 d = Temporal.Duration.from({ minutes: 130 });
-d.round({ largestUnit: 'days' }); // => PT2H10M
+d.round({ largestUnit: 'days' }); // => 'PT2H10M'
 
 // Round to the nearest unit
 d = Temporal.Duration.from({ minutes: 10, seconds: 52 });
-d.round({ smallestUnit: 'minutes' }); // => PT11M
-d.round({ smallestUnit: 'minutes', roundingMode: 'trunc' }); // => PT10M
+d.round({ smallestUnit: 'minutes' }); // => 'PT11M'
+d.round({ smallestUnit: 'minutes', roundingMode: 'trunc' }); // => 'PT10M'
 
 // How many seconds in a multi-unit duration?
 d = Temporal.Duration.from('PT2H34M18S');
@@ -479,22 +477,24 @@ d = Temporal.Duration.from({ hours: 2756 });
 d.round({
    relativeTo: '2020-01-01T00:00+01:00[Europe/Rome]',
    largestUnit: 'years'
-}); // => P114DT21H (one hour longer because DST skipped an hour)
+}); // => 'P114DT21H'
+    // (one hour longer because DST skipped an hour)
 d.round({
   relativeTo: '2020-01-01',
   largestUnit: 'years'
-}); // => P114DT20H (one hour shorter if ignoring DST)
+}); // => 'P114DT20H'
+    // (one hour shorter if ignoring DST)
 
 // Normalize days into months or years
 d = Temporal.Duration.from({ days: 190 });
 refDate = Temporal.PlainDate.from('2020-01-01');
-d.round({ relativeTo: refDate, largestUnit: 'years' }); // => P6M6D
+d.round({ relativeTo: refDate, largestUnit: 'years' }); // => 'P6M8D'
 
 // Same, but in a different calendar system
 d.round({
   relativeTo: refDate.withCalendar('hebrew'),
   largestUnit: 'years'
-}); // => P6M13D
+}); // => 'P6M13D'
 
 // Round a duration up to the next 5-minute billing period
 d = Temporal.Duration.from({ minutes: 6 });
@@ -502,7 +502,7 @@ d.round({
   smallestUnit: 'minutes',
   roundingIncrement: 5,
   roundingMode: 'ceil'
-}); // ==> P10M
+}); // => 'PT10M'
 
 // How many full 3-month quarters of this year, are in this duration?
 d = Temporal.Duration.from({ months: 10, days: 15 });
@@ -510,7 +510,7 @@ d = d.round({
   smallestUnit: 'months',
   roundingIncrement: 3,
   roundingMode: 'trunc',
-  relativeTo: Temporal.now.plainDate()
+  relativeTo: Temporal.now.plainDate('iso8601')
 });
 quarters = d.months / 3;
 quarters; // => 3
@@ -598,25 +598,25 @@ Usage examples:
 
 ```javascript
 d = Temporal.Duration.from({ years: 1, days: 1 });
-d.toString(); // => P1Y1D
+d.toString(); // => 'P1Y1D'
 d = Temporal.Duration.from({ years: -1, days: -1 });
-d.toString(); // => -P1Y1D
+d.toString(); // => '-P1Y1D'
 d = Temporal.Duration.from({ milliseconds: 1000 });
-d.toString(); // => PT1S
+d.toString(); // => 'PT1S'
 
 // The output format always balances units under 1 s, even if the
 // underlying Temporal.Duration object doesn't.
 nobal = Temporal.Duration.from({ milliseconds: 3500 });
-console.log(`${nobal}`, nobal.seconds, nobal.milliseconds); // => PT3.500S 0 3500
-bal = Temporal.Duration.from({ milliseconds: 3500 }, { overflow: 'balance' });
-console.log(`${bal}`, bal.seconds, bal.milliseconds); // => PT3.500S 3 500
+console.log(`${nobal}`, nobal.seconds, nobal.milliseconds); // => 'PT3.5S 0 3500'
+bal = Temporal.Duration.from({ milliseconds: 3500 }).round({largestUnit: 'years'}); // balance through round
+console.log(`${bal}`, bal.seconds, bal.milliseconds); // => 'PT3.5S 3 500'
 
 d = Temporal.Duration.from('PT59.999999999S');
-d.toString({ smallestUnit: 'seconds' });   // => PT59S
-d.toString({ fractionalSecondDigits: 0 }); // => PT59S
-d.toString({ fractionalSecondDigits: 4 }); // => PT59.9999S
+d.toString({ smallestUnit: 'seconds' });   // => 'PT59S'
+d.toString({ fractionalSecondDigits: 0 }); // => 'PT59S'
+d.toString({ fractionalSecondDigits: 4 }); // => 'PT59.9999S'
 d.toString({ fractionalSecondDigits: 8, roundingMode: 'nearest' });
-// => PT60.00000000S
+// => 'PT60.00000000S'
 ```
 
 ### duration.**toJSON**() : string
@@ -671,14 +671,13 @@ The `locales` and `options` arguments are the same as in the constructor to [`In
 > **NOTE**: This method requires that your JavaScript environment supports `Intl.DurationFormat`.
 > That is still an early-stage proposal and at the time of writing it is not supported anywhere.
 > If `Intl.DurationFormat` is not available, then the output of this method is the same as that of `duration.toString()`, and the `locales` and `options` arguments are ignored.
-
 Usage examples:
 
 ```javascript
 d = Temporal.Duration.from('P1DT6H30M');
-d.toLocaleString(); // => 1 day 6 hours 30 minutes
-d.toLocaleString('de-DE'); // => 1 Tag 6 Stunden 30 Minuten
-d.toLocaleString('en-US', { day: 'numeric', hour: 'numeric' }); // => 1 day 6 hours
+d.toLocaleString(); // => '1 day 6 hours 30 minutes'
+d.toLocaleString('de-DE'); // => '1 Tag 6 Stunden 30 Minuten'
+d.toLocaleString('en-US', { day: 'numeric', hour: 'numeric' }); // => '1 day 6 hours'
 ```
 
 ### duration.**valueOf**()

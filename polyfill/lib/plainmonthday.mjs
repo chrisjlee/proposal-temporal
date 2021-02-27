@@ -139,7 +139,7 @@ export class PlainMonthDay {
     const fields = ES.ToTemporalMonthDayFields(this, receiverFieldNames);
 
     const inputFieldNames = ES.CalendarFields(calendar, ['year']);
-    const entries = [['year']];
+    const entries = [['year', undefined]];
     // Add extra fields from the calendar at the end
     inputFieldNames.forEach((fieldName) => {
       if (!entries.some(([name]) => name === fieldName)) {

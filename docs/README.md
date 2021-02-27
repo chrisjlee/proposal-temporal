@@ -92,7 +92,7 @@ const zonedDateTime = Temporal.ZonedDateTime.from({
     millisecond: 0,
     microsecond: 3,
     nanosecond: 500
-}); // => 1995-12-07T03:24:30.000003500+08:00[America/Los_Angeles]
+}); // => '1995-12-07T03:24:30.0000035-08:00[America/Los_Angeles]'
 ```
 
 As the broadest `Temporal` type, `Temporal.ZonedDateTime` can be considered a combination of `Temporal.TimeZone`, `Temporal.Instant`, and `Temporal.PlainDateTime` (which includes `Temporal.Calendar`).
@@ -104,8 +104,8 @@ See [Temporal.ZonedDateTime Documentation](./zoneddatetime.md) for detailed docu
 A `Temporal.PlainDate` object represents a calendar date that is not associated with a particular time or time zone, e.g. August 24th, 2006.
 
 ```js
-const date = Temporal.PlainDate.from({year: 2006, month: 8, day: 24}); // => 2006-08-24
-date.year // => 2006
+const date = Temporal.PlainDate.from({year: 2006, month: 8, day: 24}); // => '2006-08-24'
+date.year // => '2006'
 date.inLeapYear // => false
 date.toString() // => "2006-08-24"
 ```
@@ -126,7 +126,7 @@ const time = Temporal.PlainTime.from({
   millisecond: 68,
   microsecond: 346,
   nanosecond: 205
-}); // => 19:39:09.068346205
+}); // => '19:39:09.068346205'
 
 time.second // => 9
 time.toString() // => "19:39:09.068346205"
@@ -147,11 +147,11 @@ const dateTime = Temporal.PlainDateTime.from({
   month: 12,
   day: 7,
   hour: 15
-}); // => 1995-12-07T15:00:00
+}); // => '1995-12-07T15:00:00'
 const dateTime1 = dateTime.with({
   minute: 17,
   second: 19
-}); // => 1995-12-07T15:17:19
+}); // => '1995-12-07T15:17:19'
 ```
 
 See [Temporal.PlainDateTime Documentation](./plaindatetime.md) for detailed documentation.
@@ -162,7 +162,7 @@ A date without a day component.
 This is useful to express things like "the October 2020 meeting".
 
 ```js
-const yearMonth = Temporal.PlainYearMonth.from({ year: 2020, month: 10 }); // => 2020-10
+const yearMonth = Temporal.PlainYearMonth.from({ year: 2020, month: 10 }); // => '2020-10'
 yearMonth.daysInMonth // => 31
 yearMonth.daysInYear // => 366
 ```
@@ -175,8 +175,8 @@ A date without a year component.
 This is useful to express things like "Bastille Day is on the 14th of July".
 
 ```js
-const monthDay = Temporal.PlainMonthDay.from({ month: 7, day: 14 }); // => 07-14
-const date = monthDay.toPlainDate({ year: 2030 });  // => 2030-07-14
+const monthDay = Temporal.PlainMonthDay.from({ month: 7, day: 14 }); // => '07-14'
+const date = monthDay.toPlainDate({ year: 2030 });  // => '2030-07-14'
 date.dayOfWeek // => 7
 ```
 
@@ -214,9 +214,9 @@ It is also possible to implement your own time zones.
 
 ```js
 const timeZone = Temporal.TimeZone.from('Africa/Cairo');
-timeZone.getInstantFor('2000-01-01T00:00') // => 1999-12-31T22:00:00Z
-timeZone.getPlainDateTimeFor('2000-01-01T00:00Z') // => 2000-01-01T02:00:00
-timeZone.getPreviousTransition(Temporal.now.instant()) // => 2014-09-25T21:00:00Z
+timeZone.getInstantFor('2000-01-01T00:00') // => '1999-12-31T22:00:00Z'
+timeZone.getPlainDateTimeFor('2000-01-01T00:00Z') // => '2000-01-01T02:00:00'
+timeZone.getPreviousTransition(Temporal.now.instant()) // => '2014-09-25T21:00:00Z'
 timeZone.getNextTransition(Temporal.now.instant()) // => null
 ```
 
