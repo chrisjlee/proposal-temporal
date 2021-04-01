@@ -4,7 +4,7 @@
 description: |
     This defines helper objects and functions for testing Temporal.
 defines: [TemporalHelpers]
-features: [Symbol.species]
+features: [Symbol.species, Symbol.iterator]
 ---*/
 
 var TemporalHelpers = {
@@ -323,5 +323,35 @@ var TemporalHelpers = {
     assert.sameValue(called, false);
     assert.sameValue(Object.getPrototypeOf(result), construct.prototype);
     resultAssertions(result);
+  },
+
+  /*
+   * A custom calendar that returns an iterable instead of an array from its
+   * fields() method, otherwise identical to the ISO calendar.
+   */
+  calendarFieldsIterable() {
+    class CalendarFieldsIterable extends Temporal.Calendar {
+      constructor() {
+        super("iso8601");
+      }
+
+      toString() {
+        return "fields-iterable";
+      }
+
+      fields(fieldNames) {
+        this.fieldsCalledWith = fieldNames.slice();
+        this.iteratorExhausted = false;
+        return {
+          index: 0,
+          calendar: this,
+          *[Symbol.iterator]() {
+            yield* this.calendar.fieldsCalledWith;
+            this.calendar.iteratorExhausted = true;
+          },
+        };
+      }
+    }
+    return new CalendarFieldsIterable();
   },
 };
