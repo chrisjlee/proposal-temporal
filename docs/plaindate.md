@@ -17,7 +17,7 @@ It can also be combined with a `Temporal.PlainTime` to yield a "zoneless" `Tempo
 
 ## Constructor
 
-### **new Temporal.PlainDate**(_isoYear_: number, _isoMonth_: number, _isoDay_: number, _calendar_?: object) : Temporal.PlainDate
+### **new Temporal.PlainDate**(_isoYear_: number, _isoMonth_: number, _isoDay_: number,  _calendarLike_?: string) : Temporal.PlainDate
 
 **Parameters:**
 
